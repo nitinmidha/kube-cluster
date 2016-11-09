@@ -1,0 +1,29 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=network.target
+After=etcd.service
+Requires=etcd.service
+
+
+[Service]
+EnvironmentFile=-/etc/kubernetes/config.env
+EnvironmentFile=-/etc/kubernetes/kube-apiserver.env
+#User=kube
+ExecStart=/opt/bin/kube-apiserver \
+	    $KUBE_LOGTOSTDERR \
+	    $KUBE_LOG_LEVEL \
+	    $KUBE_ETCD_SERVERS \
+		$SECURE_PORT \
+	    $KUBE_SERVICE_CLUSTER_IP_RANGE \
+        $KUBE_SERVICE_NODE_PORT_RANGE \
+	    $KUBE_ADMISSION_CONTROL \
+        $KUBE_ADVERTISE_ADDRESS \
+		$TOKEN_AUTH_FILE \
+	    $KUBE_API_ARGS
+Restart=on-failure 
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

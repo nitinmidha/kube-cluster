@@ -1,0 +1,24 @@
+[Unit]
+Description=Kubernetes Kubelet Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+EnvironmentFile=-/etc/kubernetes/config.env
+EnvironmentFile=-/etc/kubernetes/kubelet.env
+ExecStart=/opt/bin/kubelet \
+	    $KUBE_LOGTOSTDERR \
+	    $KUBE_LOG_LEVEL \
+		$KUBE_CONFIG \
+		$KUBE_CONFIG_REQUIRED \
+	    $HOSTNAME_OVVERIDE \
+        $KUBELET_CLUSTER_DNS \
+        $KUBELET_CLUSTER_DOMAIN \
+	    $KUBELET_ARGS
+Restart=on-failure
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
