@@ -52,6 +52,7 @@ for master_node in "${MASTER_NODES[@]}"; do
         EXTRA_SANS=(
             IP.0=${master_node_ip}
             IP.1=${SERVICE_CLUSTER_IP_RANGE%.*}.1
+            IP.2=127.0.0.1
             DNS.1=${server_address}
             DNS.2=kubernetes
             DNS.3=kubernetes.default

@@ -38,12 +38,12 @@ spec:
         #  value: /etc/kubernetes/kubecfg.conf
         ports:
         - containerPort: 9090
-        volumeMounts:
-        - name: "secret-volume"
-          mountPath: "/etc/kubernetes"
-          readOnly: true
+        # volumeMounts:
+        # - name: "secret-volume"
+        #   mountPath: "/etc/kubernetes"
+        #   readOnly: true
         #args:
-        #-  --apiserver-host=https://10.2.1.4:443
+        #-  --apiserver-host=https://$MASTER_NODE_IP:443
         #-   --kubeconfig=/etc/kubernetes/kubecfg.conf
         livenessProbe:
           httpGet:
@@ -51,12 +51,12 @@ spec:
             port: 9090
           initialDelaySeconds: 30
           timeoutSeconds: 30
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: dashboard-config
-          items:
-          - key: ca.crt
-            path: pki/ca.crt
-          - key: kubecfg.conf
-            path: kubecfg.conf
+      # volumes:
+      # - name: secret-volume
+      #   secret:
+      #     secretName: dashboard-config
+      #     items:
+      #     - key: ca.crt
+      #       path: pki/ca.crt
+      #     - key: kubecfg.conf
+      #       path: kubecfg.conf

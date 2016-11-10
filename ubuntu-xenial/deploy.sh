@@ -161,14 +161,11 @@ function privision-minion-nodes(){
 
 
 function create-token-authentication-file(){
+    # These credentials will be used by kubectl so as to connect to api server.
     token_file="$WORK_DIR/token.csv"
     user=admin
     admin_token=$(dd if=/dev/urandom bs=128 count=1 2>/dev/null | base64 | tr -d "=+/" | dd bs=32 count=1 2>/dev/null)
     echo "$admin_token,$user,$user" > "$token_file"
-
-    user=kubedashboard
-    token=$(dd if=/dev/urandom bs=128 count=1 2>/dev/null | base64 | tr -d "=+/" | dd bs=32 count=1 2>/dev/null)
-    echo "$token,$user,$user" >> "$token_file"
 } 
 
 create-token-authentication-file

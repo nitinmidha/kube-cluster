@@ -52,25 +52,7 @@ function deploy_dashboard {
     if ${KUBECTL} get rc -l k8s-app=kubernetes-dashboard --namespace=kube-system | grep kubernetes-dashboard-v &> /dev/null; then
         echo "Kubernetes Dashboard replicationController already exists"
     else
-        master_node="${MASTER_NODES[0]}"
-        MASTER_NODE_IP=$(ssh $SSH_OPTS "$master_node" \
-            "/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"'')
-        echo "Creating Kubernetes Dashboard replicationController"
-
-
-        DASHBOARD_TOKEN=$(cat $WORK_DIR/token.csv | grep admin | awk -F , '{print $1}')
-
-        sed -e "s/\\\$MASTER_NODE_IP/${MASTER_NODE_IP}/g;s/\\\$DASHBOARD_TOKEN/${DASHBOARD_TOKEN}/g" "$BASE_DIR/addons/kubecfg.conf.sed" > $WORK_DIR/addons/kubecfg.conf
-
-        ${KUBECTL} delete secret dashboard-config --namespace=kube-system
-
-        ${KUBECTL} create secret generic dashboard-config \
-            --from-file=$WORK_DIR/addons/kubecfg.conf \
-            --from-file=$WORK_DIR/certs/ca.crt \
-            --namespace=kube-system
-
-        sed -e "s/\\\$MASTER_NODE_IP/${MASTER_NODE_IP}/g" "$BASE_DIR/addons/dashboard-controller.yaml.sed" > $WORK_DIR/addons/dashboard-controller.yaml
-        ${KUBECTL} create -f $WORK_DIR/addons/dashboard-controller.yaml
+        ${KUBECTL} create -f $BASE_DIR/addons/dashboard-controller.yaml
     fi
 
     if ${KUBECTL} get service/kubernetes-dashboard --namespace=kube-system &> /dev/null; then
@@ -86,11 +68,10 @@ function deploy_dashboard {
 
 echo "Configuring Kubectl"
 configure-kubectl
-${KUBECTL} delete -f $WORK_DIR/addons
 echo "deploying dns"
 deploy_dns
 echo "dns deployment completed"
-echo "deplying dashboard"
+echo "deploying dashboard"
 deploy_dashboard
 echo "dashboard deployment completed"
 
