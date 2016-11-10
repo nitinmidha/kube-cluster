@@ -37,3 +37,4 @@ Kubernetes HA(multi master with etcd clustering, multi minion) Secure(Client Cer
     9. CLUSTER_DNS_EXTERNAL, If not blank will put this in master node extra sans certs so as to communicate with master node using this domain name.
     10.GENERATE_CERTS, if true will generate a ca cert and cert for each node. If false, we need to manually make sure that certificates with proper names are placed in CERT_DIR on all master and minion nodes.
     11.DEPLOY_TEST_DEPLOYMENT, Not supported yet. In future it will deploy a test-api and a NGINX reverse proxy to test the cluster.
+  4. Run ./deploy-ha-cluster.sh
