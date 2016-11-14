@@ -9,9 +9,10 @@ source "$CONFIG_PATH"
     "$BASE_DIR" \
     "$WORK_DIR" \
     "$CONFIG_PATH" \
-    "$KUBE_VERSION" \
     "$FLANNEL_VERSION" \
-    "$ETCD_VERSION"
+    "$ETCD_VERSION" \
+    "$KUBE_VERSION" 
+    
 
 if [ "$GENERATE_CERTS" == "true" ]; then
     "$BASE_DIR/ubuntu-xenial/generate-certs.sh" \

@@ -1,6 +1,6 @@
 # Kubernetes Multi Master Cluster
 Kubernetes HA(multi master with etcd clustering, multi minion) Secure(Client Certification on etcd and kube-api-server) Cluster on Ubuntu 16.04
-
+Tested with Kube version v1.4.5 and v1.4.6
 ## Limitations
   1. **Master nodes are dedicated master only node. kube-proxy,kubelet and flannel are not installed. So master can not reach out to any containers**
   2. **https://master_ip/ui will not work as master can not reach to containers. Dashboard is hosted as a separate internal service available on minion nodes on port 9090 using dashboard service ip address. If required it can be proxied through any reverse proxy server like NGINX. Or Service can expose NodePort and can be available outside the cluster**
