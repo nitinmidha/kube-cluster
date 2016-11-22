@@ -10,11 +10,19 @@ source "$CONFIG_PATH"
 mkdir -p "$WORK_DIR/addons"
 
 function configure-kubectl(){
-    master_node="${MASTER_NODES[0]}"
-    master_host_name="$(echo $master_node | awk -F @ '{print $2}' )"
-
+    
+    index=0
+    for node in "${NODES[@]}"; do
+        role="${NODE_ROLES[$index]}"
+        if [ "$role" = "MO" ] || [ "$role" = "MW" ]; then
+            node_host_name="$(echo $node | awk -F @ '{print $2}' )"
+            break
+        fi
+        ((index=index+1))
+    done
+    
     if [ -z "$CLUSTER_DNS_EXTERNAL" ]; then
-        server_address=$master_host_name
+        server_address=$node_host_name
     else
         server_address=$CLUSTER_DNS_EXTERNAL
     fi

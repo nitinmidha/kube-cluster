@@ -21,145 +21,32 @@ if [ "$GENERATE_CERTS" == "true" ]; then
         "$CONFIG_PATH"
 fi
 
-
-#1 : master_node
-function provision-master(){
-    master_node=${1:-}
-    etcd_node_name=${2:-}
-    etcd_cluster_name=${3:-}
-    etcd_initial_cluster=${4:-}
-    master_host_name="$(echo $master_node | awk -F @ '{print $2}' )"
-
-    # stage files for scp
-    rm -rf "$WORK_DIR/ha-kube"
-    mkdir -p "$WORK_DIR/ha-kube"
-
-    # Copy Config file
-    cp "$CONFIG_PATH" "$WORK_DIR/ha-kube"
-
-    # Copy master files
-    cp -r "$BASE_DIR/ubuntu-xenial/master" "$WORK_DIR/ha-kube"
-
-    # Create folder for binaries 
-    mkdir -p  "$WORK_DIR/ha-kube/master/binaries"
-
-    # Copy binaries
-    cp "$WORK_DIR/binaries/etcd" "$WORK_DIR/binaries/etcdctl" \
-        "$WORK_DIR/binaries/kube-apiserver" "$WORK_DIR/binaries/kube-controller-manager" \
-        "$WORK_DIR/binaries/kube-scheduler" \
-        "$WORK_DIR/ha-kube/master/binaries"
-
-    # Create folder for certs 
-    mkdir -p  "$WORK_DIR/ha-kube/master/certs"
-
-    # Copy certs
-
-    cp "$WORK_DIR/certs/ca.crt" "$WORK_DIR/certs/${master_host_name}-server.crt" \
-        "$WORK_DIR/certs/${master_host_name}-server.key" \
-        "$WORK_DIR/ha-kube/master/certs"
-
-    # Copy Token files
-    cp "$WORK_DIR/token.csv" "$WORK_DIR/ha-kube/master/environment"
-
-    scp $SSH_OPTS -r "$WORK_DIR/ha-kube" "${master_node}:~/"
-
-    #echo "$etcd_node_name" "$etcd_cluster_name" "$etcd_initial_cluster"
-    ssh $SSH_OPTS -t "$master_node" "
-        sudo chmod +x ~/ha-kube/master/deploy-master.sh 
-        ~/ha-kube/master/deploy-master.sh deploy-master $master_host_name $etcd_node_name $etcd_cluster_name $etcd_initial_cluster
-    "
-}
-
-
-#1 : master_node
-function provision-minion(){
-    worker_node=${1:-}
-    master_node_ip=${2:-}
-    worker_host_name="$(echo $worker_node | awk -F @ '{print $2}' )"
-
-    # stage files for scp
-    rm -rf "$WORK_DIR/ha-kube"
-    mkdir -p "$WORK_DIR/ha-kube"
-
-    # Copy Config file
-    cp "$CONFIG_PATH" "$WORK_DIR/ha-kube"
-
-    # Copy master files
-    cp -r "$BASE_DIR/ubuntu-xenial/minion" "$WORK_DIR/ha-kube"
-
-    # Create folder for binaries 
-    mkdir -p  "$WORK_DIR/ha-kube/minion/binaries"
-
-    # Copy binaries
-    cp "$WORK_DIR/binaries/flanneld" \
-        "$WORK_DIR/binaries/kubelet" \
-        "$WORK_DIR/binaries/kube-proxy" \
-        "$WORK_DIR/ha-kube/minion/binaries"
-    
-    # Create folder for certs 
-    mkdir -p  "$WORK_DIR/ha-kube/minion/certs"
-
-    # Copy certs
-
-    cp "$WORK_DIR/certs/ca.crt" "$WORK_DIR/certs/${worker_host_name}-node.crt" \
-        "$WORK_DIR/certs/${worker_host_name}-node.key" \
-        "$WORK_DIR/ha-kube/minion/certs"
-    
-    scp $SSH_OPTS -r "$WORK_DIR/ha-kube" "${worker_node}:~/"
-
-    #echo "$etcd_node_name" "$etcd_cluster_name" "$etcd_initial_cluster"
-    ssh $SSH_OPTS -t "$worker_node" "
-        sudo chmod +x ~/ha-kube/minion/deploy-minion.sh 
-        ~/ha-kube/minion/deploy-minion.sh deploy-minion $worker_host_name $master_node_ip
-    "
-}
-
 etcd_cluster_name="$CLUSTER_NAME-etcd"
 etcd_initial_cluster=""
-default_master_node_ip=""
+etcd_endpoints=""
+api_server_ip=""
 suffix=0
 function create-etcd-initial-cluster-info(){
-    for master_node in "${MASTER_NODES[@]}"; do
-        node_name="infra""$suffix"
-        master_node_ip=$(ssh $SSH_OPTS "$master_node" \
-            "/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"'')
-        if [ -z "$etcd_initial_cluster" ]; then 
-            etcd_initial_cluster="$node_name=https://$master_node_ip:2380"
-            default_master_node_ip=$master_node_ip
-        else
-            etcd_initial_cluster="$etcd_initial_cluster"",$node_name=https://$master_node_ip:2380"
+    index=0
+    suffix=0
+    for node in "${NODES[@]}"; do
+        role="${NODE_ROLES[$index]}"
+        if [ "$role" = "MO" ] || [ "$role" = "MW" ]; then
+            node_name="infra""$suffix"
+            node_ip=$(ssh $SSH_OPTS "$node" \
+                "/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"'')
+            if [ -z "$etcd_initial_cluster" ]; then 
+                etcd_initial_cluster="$node_name=https://$node_ip:2380"
+                etcd_endpoints="https://$node_ip:2379"
+            else
+                etcd_initial_cluster="$etcd_initial_cluster"",$node_name=https://$node_ip:2380"
+                etcd_endpoints="$etcd_endpoints"",https://$node_ip:2379"
+            fi
+            ((suffix=suffix+1))
         fi
-        ((suffix=suffix+1))
+        ((index=index+1))
     done
 } 
-
-function provision-master-nodes(){
-    suffix=0
-    # Provision and Deploy Masters
-    for master_node in "${MASTER_NODES[@]}"; do
-        node_name="infra""$suffix"
-        provision-master "$master_node" "$node_name" "$etcd_cluster_name" "$etcd_initial_cluster"
-        ((suffix=suffix+1))
-    done
-    echo "Sleeping 120s allowing etcd cluster to boot up"
-    sleep 30s
-    for master_node in "${MASTER_NODES[@]}"; do
-        master_host_name="$(echo $master_node | awk -F @ '{print $2}' )"
-        ssh $SSH_OPTS -t "$master_node" "
-        sudo chmod +x ~/ha-kube/master/deploy-master.sh 
-        ~/ha-kube/master/deploy-master.sh enable-kube-services $master_host_name
-    "
-    done
-}
-
-
-function privision-minion-nodes(){
-    # Provision and Deploy Workers
-    for worker_node in "${WORKER_NODES[@]}"; do
-        provision-minion "$worker_node" "$default_master_node_ip"
-    done
-}
-
 
 function create-token-authentication-file(){
     # These credentials will be used by kubectl so as to connect to api server.
@@ -169,12 +56,173 @@ function create-token-authentication-file(){
     echo "$admin_token,$user,$user" > "$token_file"
 } 
 
+# $1 :- Node
+# $2:- ETCD Node Name
+# $3:- ETCD Cluster Name
+# $4:- ETCD Initial Cluster
+function provision-etcd-node(){
+    etcd_node=${1:-}
+    etcd_node_name=${2:-}
+    etcd_cluster_name=${3:-}
+    etcd_initial_cluster=${4:-}
+    etcd_node_host_name="$(echo $etcd_node | awk -F @ '{print $2}' )"
+
+    # stage files for scp
+    rm -rf "$WORK_DIR/ha-kube"
+    mkdir -p "$WORK_DIR/ha-kube"
+
+    # Copy Config file
+    cp "$CONFIG_PATH" "$WORK_DIR/ha-kube"
+
+    # Copy master files
+    cp -r "$BASE_DIR/ubuntu-xenial/etcd" "$WORK_DIR/ha-kube"
+
+    # Create folder for binaries 
+    mkdir -p  "$WORK_DIR/ha-kube/etcd/binaries"
+
+    # Copy binaries
+    cp "$WORK_DIR/binaries/etcd" "$WORK_DIR/binaries/etcdctl" \
+        "$WORK_DIR/ha-kube/etcd/binaries/"
+
+    # Create folder for certs 
+    mkdir -p  "$WORK_DIR/ha-kube/certs"
+
+    # Copy certs
+    if [ "$GENERATE_CERTS" == "true" ]; then
+        # Create folder for certs 
+        mkdir -p  "$WORK_DIR/ha-kube/certs"
+        cp "$WORK_DIR/certs/ca.crt" "$WORK_DIR/certs/${etcd_node_host_name}.crt" \
+            "$WORK_DIR/certs/${etcd_node_host_name}.key" \
+            "$WORK_DIR/ha-kube/certs"
+    fi
+
+    scp $SSH_OPTS -r "$WORK_DIR/ha-kube" "${etcd_node}:~/"
+
+    #echo "$etcd_node_name" "$etcd_cluster_name" "$etcd_initial_cluster"
+    ssh $SSH_OPTS -t "$etcd_node" "
+        sudo chmod +x ~/ha-kube/etcd/deploy-etcd.sh 
+        ~/ha-kube/etcd/deploy-etcd.sh deploy-etcd \
+            $etcd_node_host_name \
+            $etcd_node_name \
+            $etcd_cluster_name \
+            $etcd_initial_cluster
+    "
+}
+
+# $1:- Node
+# $2:- Role
+function provision-node(){
+    node="${1:-}"
+    role="${2:-}"
+    api_server_ip="${3:-}"
+    etcd_end_points="${4:-}"
+    configure_etcd_flannel="${5:-}"
+
+    node_host_name="$(echo $node | awk -F @ '{print $2}' )"
+    # stage files for scp
+    rm -rf "$WORK_DIR/ha-kube"
+    mkdir -p "$WORK_DIR/ha-kube"
+    mkdir -p  "$WORK_DIR/ha-kube/node/binaries"
+    # Copy Config file
+    cp "$CONFIG_PATH" "$WORK_DIR/ha-kube"
+
+    # Copy master files
+    cp -r $BASE_DIR/ubuntu-xenial/common/* "$WORK_DIR/ha-kube/node/"
+
+    if [ "$role" == "MO" ] || [ "$role" == "MW" ]; then
+        cp -r $BASE_DIR/ubuntu-xenial/master/* "$WORK_DIR/ha-kube/node/"
+
+        cp "$WORK_DIR/token.csv" "$WORK_DIR/ha-kube/node/environment/"
+
+        # Copy binaries
+        cp "$WORK_DIR/binaries/kube-apiserver" "$WORK_DIR/binaries/kube-controller-manager" \
+            "$WORK_DIR/binaries/kube-scheduler" \
+            "$WORK_DIR/ha-kube/node/binaries/"
+    fi
+    
+    if [ "$role" == "WO" ] || [ "$role" == "MW" ]; then
+        cp -r $BASE_DIR/ubuntu-xenial/minion/* "$WORK_DIR/ha-kube/node/"
+
+        # Copy binaries
+        cp "$WORK_DIR/binaries/kube-proxy" "$WORK_DIR/binaries/kubelet" \
+            "$WORK_DIR/binaries/flanneld" \
+            "$WORK_DIR/ha-kube/node/binaries/"
+    fi
+
+    if [ "$role" == "MW" ]; then
+        cp -r $BASE_DIR/ubuntu-xenial/master-minion/* "$WORK_DIR/ha-kube/node/"
+    fi
+
+    # Copy certs
+    if [ "$GENERATE_CERTS" == "true" ]; then
+        mkdir -p $WORK_DIR/ha-kube/certs
+        cp "$WORK_DIR/certs/ca.crt" "$WORK_DIR/certs/${node_host_name}.crt" \
+            "$WORK_DIR/certs/${node_host_name}.key" \
+            "$WORK_DIR/ha-kube/certs"
+    fi
+    
+    scp $SSH_OPTS -r "$WORK_DIR/ha-kube" "${node}:~/"
+
+    #echo "$etcd_node_name" "$etcd_cluster_name" "$etcd_initial_cluster"
+    ssh $SSH_OPTS -t "$node" "
+        sudo chmod +x ~/ha-kube/node/deploy-node.sh 
+        ~/ha-kube/node/deploy-node.sh deploy-node \
+            $node_host_name \
+            $role \
+            $api_server_ip \
+            $etcd_end_points \
+            $configure_etcd_flannel
+    "
+}
+
+function provision-etcd-nodes(){
+    index=0
+    suffix=0
+    for node in "${NODES[@]}"; do
+        role="${NODE_ROLES[$index]}"
+        if [ "$role" = "MO" ] || [ "$role" = "MW" ]; then
+            node_name="infra""$suffix"
+            provision-etcd-node "$node" "$node_name" "$etcd_cluster_name" "$etcd_initial_cluster"
+            ((suffix=suffix+1))
+        fi
+        ((index=index+1))
+    done
+}
+
+function provision-nodes(){
+    index=0
+    for node in "${NODES[@]}"; do
+        role="${NODE_ROLES[$index]}"
+        if [ "$role" == "MO" ] || [ "$role" == "MW" ]; then
+            node_ip=$(ssh $SSH_OPTS "$node" \
+                "/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"'')
+                api_server_ip="$node_ip"
+            break
+        fi 
+        ((index=index+1))
+    done
+
+    index=0
+    for node in "${NODES[@]}"; do
+        role="${NODE_ROLES[$index]}"
+
+        if [ "$index" == 0 ]; then
+            configure_etcd_flannel="true"
+        else
+            configure_etcd_flannel="false"
+        fi
+
+        provision-node "$node" "$role" "$api_server_ip" "$etcd_endpoints" "$configure_etcd_flannel"
+        ((index=index+1))
+    done
+}
+
 create-token-authentication-file
 create-etcd-initial-cluster-info
-provision-master-nodes
-privision-minion-nodes
-
-
+provision-etcd-nodes
+echo "Sleeping 120s allowing etcd cluster to boot up"
+sleep 120s
+provision-nodes
 
 
 

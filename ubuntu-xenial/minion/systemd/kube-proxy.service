@@ -1,7 +1,9 @@
 [Unit]
 Description=Kubernetes Kube-Proxy Server
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-After=network.target
+After=network.target flanneld.service
+Requires=docker.socket flanneld.service
+
 
 [Service]
 EnvironmentFile=-/etc/kubernetes/config.env

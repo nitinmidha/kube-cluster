@@ -1,0 +1,20 @@
+[Unit]
+Description=Flannel - An etcd backed overlay network for containers
+Documentation=https://github.com/coreos/flannel
+After=network.target etcd.service
+Requires=etcd.service
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/kubernetes/flanneld.env
+ExecStart=/opt/bin/flanneld \
+    "$ETCD_ENDPOINTS" \
+    "$IP_MASQ" \
+    "$ETCD_CAFILE" \
+    "$ETCD_CERTFILE" \
+    "$ETCD_KEYFILE" \
+    "$IFACE"  
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
