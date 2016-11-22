@@ -12,7 +12,7 @@ Tested with Kube version v1.4.5 and v1.4.6
   2. TLS communication and client cert authentication between ETCD client and peer communication.
   3. TLS communication and client cert authentication between all kube-components
   4. Flannel is used for networking. Flannel does not support TLS yet.
-  5. Node can be Master Only, Worker Only and Master-Worker mode. Master Only nodes do have flannel and will not be able to reach to pods.
+  5. Node can be Master Only, Worker Only and Master-Worker mode. Master Only nodes do not have flannel/kubelet and kube-proxy, so will not be able to reach to pods. Also command 'kubelet get nodes' will not show this node. 
 
 ## Instructions to set up
   1. Clone this repo on a local machine. Local machine should not be part of cluster.
