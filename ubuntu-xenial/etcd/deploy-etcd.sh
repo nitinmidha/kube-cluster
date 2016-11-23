@@ -34,7 +34,7 @@ function configure-services(){
     export ETCD_NODE_NAME=${2:-}
     export ETCD_CLUSTER_NAME=${3:-}
     export ETCD_INITIAL_CLUSTER=${4:-}
-    export CURRENT_NODE_IP=$(/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk '{print $3}')
+    export CURRENT_NODE_IP=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
     
     
     

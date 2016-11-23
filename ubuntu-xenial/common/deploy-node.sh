@@ -93,7 +93,7 @@ function configure-services(){
     ROLE=${2:-}
     export API_SERVER_IP=${3:-}
     export ETCD_END_POINTS=${4:-}
-    export CURRENT_NODE_IP=$(/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk '{print $3}')
+    export CURRENT_NODE_IP=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
     
     sudo mkdir -p /etc/kubernetes
 

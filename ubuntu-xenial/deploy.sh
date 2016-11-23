@@ -5,6 +5,10 @@ CONFIG_PATH=${3:-}
 
 source "$CONFIG_PATH"
 
+GET_NODE_IP="ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print "'$2'"}' | cut -f1  -d'/'"
+
+#"/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"''
+
 "$BASE_DIR/ubuntu-xenial/get-releases.sh" \
     "$BASE_DIR" \
     "$WORK_DIR" \
@@ -33,8 +37,7 @@ function create-etcd-initial-cluster-info(){
         role="${NODE_ROLES[$index]}"
         if [ "$role" = "MO" ] || [ "$role" = "MW" ]; then
             node_name="infra""$suffix"
-            node_ip=$(ssh $SSH_OPTS "$node" \
-                "/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"'')
+            node_ip=$(ssh $SSH_OPTS "$node" "$GET_NODE_IP")
             if [ -z "$etcd_initial_cluster" ]; then 
                 etcd_initial_cluster="$node_name=https://$node_ip:2380"
                 etcd_endpoints="https://$node_ip:2379"
@@ -194,9 +197,8 @@ function provision-nodes(){
     for node in "${NODES[@]}"; do
         role="${NODE_ROLES[$index]}"
         if [ "$role" == "MO" ] || [ "$role" == "MW" ]; then
-            node_ip=$(ssh $SSH_OPTS "$node" \
-                "/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"'')
-                api_server_ip="$node_ip"
+            node_ip=$(ssh $SSH_OPTS "$node" "$GET_NODE_IP")
+            api_server_ip="$node_ip"
             break
         fi 
         ((index=index+1))
@@ -219,6 +221,7 @@ function provision-nodes(){
 
 create-token-authentication-file
 create-etcd-initial-cluster-info
+
 provision-etcd-nodes
 echo "Sleeping 120s allowing etcd cluster to boot up"
 sleep 120s
