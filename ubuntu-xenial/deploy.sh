@@ -112,6 +112,30 @@ function provision-etcd-node(){
     "
 }
 
+function configure-etcd-auth(){
+    file=$1
+    if [ "$DEPLOY_ETCD" == "true" ]; then
+        echo 'ETCD_AUTH_CERTS="--etcd-cafile=${CERT_DIR}/ca.crt \
+                --etcd-certfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.crt \
+                --etcd-keyfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.key"' >> "$file"
+    else
+        if [[! -z "$EXTERNAL_ETCD_CA_CERT" ]]; then
+            etcd_cert_auth=" --etcd-cafile=${EXTERNAL_ETCD_CA_CERT}"
+        fi
+        if [[! -z "$EXTERNAL_ETCD_CA_CERT" ]]; then
+            etcd_cert_auth=$etcd_cert_auth" --etcd-certfile=${EXTERNAL_ETCD_CA_CERT}"
+        fi
+        if [[! -z "$EXTERNAL_ETCD_CA_CERT" ]]; then
+            etcd_cert_auth=$etcd_cert_auth" --etcd-keyfile=${EXTERNAL_ETCD_CA_CERT}"
+        fi
+        echo 'ETCD_AUTH_CERTS="'"$etcd_cert_auth"'"' >> "$file"
+    fi
+}
+
+ETCD_CAFILE="--etcd-cafile=${CERT_DIR}/ca.crt"
+ETCD_CERTFILE="--etcd-certfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.crt"
+ETCD_KEYFILE="--etcd-keyfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.key"
+
 # $1:- Node
 # $2:- Role
 function provision-node(){
@@ -135,6 +159,8 @@ function provision-node(){
     if [ "$role" == "MO" ] || [ "$role" == "MW" ]; then
         cp -r $BASE_DIR/ubuntu-xenial/master/* "$WORK_DIR/ha-kube/node/"
 
+        configure-etcd-auth "$WORK_DIR/ha-kube/node/environment/kube-apiserver.env"
+
         cp "$WORK_DIR/token.csv" "$WORK_DIR/ha-kube/node/environment/"
 
         # Copy binaries
@@ -145,6 +171,8 @@ function provision-node(){
     
     if [ "$role" == "WO" ] || [ "$role" == "MW" ]; then
         cp -r $BASE_DIR/ubuntu-xenial/minion/* "$WORK_DIR/ha-kube/node/"
+
+        configure-etcd-auth "$WORK_DIR/ha-kube/node/environment/flanneld.env"
 
         # Copy binaries
         cp "$WORK_DIR/binaries/kube-proxy" "$WORK_DIR/binaries/kubelet" \
@@ -220,11 +248,14 @@ function provision-nodes(){
 }
 
 create-token-authentication-file
-create-etcd-initial-cluster-info
-
-provision-etcd-nodes
-echo "Sleeping 120s allowing etcd cluster to boot up"
-sleep 120s
+if [ "$DEPLOY_ETCD" == "true" ]; then
+    create-etcd-initial-cluster-info
+    provision-etcd-nodes
+    echo "Sleeping 120s allowing etcd cluster to boot up"
+    sleep 120s
+else
+    etcd_endpoints=${EXTERNAL_ETCD_ENDPOINTS}
+fi
 provision-nodes
 
 

@@ -9,10 +9,8 @@ EnvironmentFile=-/etc/kubernetes/flanneld.env
 ExecStart=/opt/bin/flanneld \
     "$ETCD_ENDPOINTS" \
     "$IP_MASQ" \
-    "$ETCD_CAFILE" \
-    "$ETCD_CERTFILE" \
-    "$ETCD_KEYFILE" \
-    "$IFACE"  
+    "$IFACE"  \
+    "$ETCD_AUTH_CERTS"
 Restart=on-failure
 
 [Install]
