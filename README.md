@@ -40,4 +40,6 @@ Tested with Kube version v1.4.5 and v1.4.6
     8. CLUSTER_DNS_EXTERNAL, If not blank will put this in master node extra sans certs so as to communicate with master node using this domain name.
     9.GENERATE_CERTS, if true will generate a ca cert and cert for each node. If false, we need to manually make sure that certificates with proper names are placed in CERT_DIR on all master and minion nodes.
     10.DEPLOY_TEST_DEPLOYMENT, Not supported yet. In future it will deploy a test-api and a NGINX reverse proxy to test the cluster.
+    11.DEPLOY_ETCD, if true will Deploy ETCD on all Master/Master-Worker nodes.
+    12.EXTERNAL_ETCD_ENDPOINTS, when Deploy ETCD is false, EXTERNAL_ETCD_ENDPOINTS should contain comma separated list of etcd endpoints 
   4. Run ./deploy-ha-cluster.sh
