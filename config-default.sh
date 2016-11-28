@@ -30,8 +30,8 @@ export DEPLOY_ETCD="${DEPLOY_ETCD:-true}"
 #Below settings are used only when DEPLOY_ETCD is false
 
 # , seprated endpoints with port and protocol
-# Example HTTP "http://x.x.x.x:2379, http://x.x.x.x:2379"
-# Example HTTPS "https://x.x.x.x:2379, https://x.x.x.x:2379"
+# Example HTTP: EXTERNAL_ETCD_ENDPOINTS=${EXTERNAL_ETCD_ENDPOINTS:-"http://x.x.x.x:2379, http://x.x.x.x:2379"}
+# Example HTTPS: EXTERNAL_ETCD_ENDPOINTS=${EXTERNAL_ETCD_ENDPOINTS:-"https://x.x.x.x:2379, https://x.x.x.x:2379"}
 export EXTERNAL_ETCD_ENDPOINTS=${EXTERNAL_ETCD_ENDPOINTS:-""}
 
 # If HTTPS endpoints are used then set below settings for certificates. These files should exists on every node.
@@ -43,11 +43,14 @@ export EXTERNAL_ETCD_ENDPOINTS=${EXTERNAL_ETCD_ENDPOINTS:-""}
 
 
 # Absolute ca cert file path
-export EXTERNAL_ETCD_CA_CERT=${EXTERNAL_ETCD_CA_CERT:-'${CERT_DIR}/ca.crt'}
+#export EXTERNAL_ETCD_CA_CERT=${EXTERNAL_ETCD_CA_CERT:-'${CERT_DIR}/ca.crt'}
+export EXTERNAL_ETCD_CA_CERT=${EXTERNAL_ETCD_CA_CERT:-}
 
 # If https is used with client Cert Authentication, set below settings
-export EXTERNAL_ETCD_CLIENT_CERT=${EXTERNAL_ETCD_CLIENT_CERT:-'${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.crt'}
-export EXTERNAL_ETCD_CLIENT_KEY=${EXTERNAL_ETCD_CLIENT_CERT:-'${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.key'}
+#export EXTERNAL_ETCD_CLIENT_CERT=${EXTERNAL_ETCD_CLIENT_CERT:-'${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.crt'}
+#export EXTERNAL_ETCD_CLIENT_KEY=${EXTERNAL_ETCD_CLIENT_KEY:-'${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.key'}
+export EXTERNAL_ETCD_CLIENT_CERT=${EXTERNAL_ETCD_CLIENT_CERT:-}
+export EXTERNAL_ETCD_CLIENT_KEY=${EXTERNAL_ETCD_CLIENT_KEY:-}
 
 
 export SSH_OPTS="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oLogLevel=ERROR"

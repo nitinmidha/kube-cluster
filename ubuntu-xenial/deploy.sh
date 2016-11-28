@@ -115,26 +115,22 @@ function provision-etcd-node(){
 function configure-etcd-auth(){
     file=$1
     if [ "$DEPLOY_ETCD" == "true" ]; then
-        echo 'ETCD_AUTH_CERTS="--etcd-cafile=${CERT_DIR}/ca.crt \
+        echo -e '\nETCD_AUTH_CERTS="--etcd-cafile=${CERT_DIR}/ca.crt \
                 --etcd-certfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.crt \
                 --etcd-keyfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.key"' >> "$file"
     else
-        if [[! -z "$EXTERNAL_ETCD_CA_CERT" ]]; then
+        if [[ ! -z "$EXTERNAL_ETCD_CA_CERT" ]]; then
             etcd_cert_auth=" --etcd-cafile=${EXTERNAL_ETCD_CA_CERT}"
         fi
-        if [[! -z "$EXTERNAL_ETCD_CA_CERT" ]]; then
-            etcd_cert_auth=$etcd_cert_auth" --etcd-certfile=${EXTERNAL_ETCD_CA_CERT}"
+        if [[ ! -z "$EXTERNAL_ETCD_CLIENT_CERT" ]]; then
+            etcd_cert_auth=$etcd_cert_auth" --etcd-certfile=${EXTERNAL_ETCD_CLIENT_CERT}"
         fi
-        if [[! -z "$EXTERNAL_ETCD_CA_CERT" ]]; then
-            etcd_cert_auth=$etcd_cert_auth" --etcd-keyfile=${EXTERNAL_ETCD_CA_CERT}"
+        if [[ ! -z "$EXTERNAL_ETCD_CLIENT_KEY" ]]; then
+            etcd_cert_auth=$etcd_cert_auth" --etcd-keyfile=${EXTERNAL_ETCD_CLIENT_KEY}"
         fi
-        echo 'ETCD_AUTH_CERTS="'"$etcd_cert_auth"'"' >> "$file"
+        echo -e '\nETCD_AUTH_CERTS="'"$etcd_cert_auth"'"' >> "$file"
     fi
 }
-
-ETCD_CAFILE="--etcd-cafile=${CERT_DIR}/ca.crt"
-ETCD_CERTFILE="--etcd-certfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.crt"
-ETCD_KEYFILE="--etcd-keyfile=${CERT_DIR}/${CURRENT_NODE_HOSTNAME}.key"
 
 # $1:- Node
 # $2:- Role

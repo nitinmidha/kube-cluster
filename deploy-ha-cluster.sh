@@ -12,7 +12,6 @@ mkdir -p "$WORK_DIR"
     "$SCRIPT_DIR" \
     "$WORK_DIR" \
     "$CONFIG_PATH"
-
 sleep 30s
 
 "$SCRIPT_DIR/addons/deploy-addons.sh" \
