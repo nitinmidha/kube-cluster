@@ -3,6 +3,8 @@ BASE_DIR=${1:-}
 WORK_DIR=${2:-}
 CONFIG_PATH=${3:-}
 
+GET_NODE_IP="ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print "'$2'"}' | cut -f1  -d'/'"
+
 source "$CONFIG_PATH"
 
 declare -a EXTRA_SANS
@@ -22,8 +24,7 @@ function generate-cert(){
     node=${1:-}
     role=${2:-}
     node_hostname="$(echo $node | awk -F @ '{print $2}' )"
-    node_ip=$(ssh $SSH_OPTS "$node" \
-            "/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"'')
+    node_ip=$(ssh $SSH_OPTS "$node" "$GET_NODE_IP")
     key_file="$CERT_TMP_DIR/${node_hostname}.key"
     if [ -f "${key_file}" ]; then
         echo "Key file for master:$node_hostname already exists. Skipping Cert generation."
