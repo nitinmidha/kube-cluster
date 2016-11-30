@@ -19,9 +19,11 @@ export KUBECTL_CONTEXT="${CLUSTER_NAME}-context"
 export GENERATE_CERTS="${GENERATE_CERTS:-true}"
 export DEPLOY_TEST_DEPLOYMENT="${DEPLOY_TEST_DEPLOYMENT:-true}"
 
+export KUBE_API_SERVER_STORAGE_BACKEND="${KUBE_API_SERVER_STORAGE_BACKEND:-etcd3}"
+
 export KUBE_VERSION=${KUBE_VERSION:-} # kubernetes version, if not provided will get latest
-export FLANNEL_VERSION=${FLANNEL_VERSION:-"0.5.5"} 
-export ETCD_VERSION=${ETCD_VERSION:-"2.3.1"} 
+export FLANNEL_VERSION=${FLANNEL_VERSION:-"0.6.2"} 
+export ETCD_VERSION=${ETCD_VERSION:-"3.0.15"} 
 
 # If true will deploy etcd cluster on MO and MW nodes. 
 # If false, it is assumed that ETCD is already deployed 

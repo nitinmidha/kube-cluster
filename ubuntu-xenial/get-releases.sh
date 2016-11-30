@@ -107,7 +107,7 @@ else
   cd "$WORK_DIR/releases/flannel"
   echo "Prepare flannel ${FLANNEL_VERSION} release ..."
   grep -q "^${FLANNEL_VERSION}\$" binaries/.flannel 2>/dev/null || {
-    curl -L  https://github.com/coreos/flannel/releases/download/v${FLANNEL_VERSION}/flannel-${FLANNEL_VERSION}-linux-amd64.tar.gz -o flannel.tar.gz
+    curl -L  https://github.com/coreos/flannel/releases/download/v${FLANNEL_VERSION}/flannel-v${FLANNEL_VERSION}-linux-amd64.tar.gz -o flannel.tar.gz
     tar xzf flannel.tar.gz
     
   }
@@ -132,7 +132,7 @@ cp kubernetes/server/kubernetes/server/bin/kubelet \
 cp kubernetes/server/kubernetes/server/bin/kubectl "$WORK_DIR/binaries"
 
 cd "$WORK_DIR/releases/flannel"
-cp flannel-${FLANNEL_VERSION}/flanneld "$WORK_DIR/binaries"
+cp flanneld "$WORK_DIR/binaries"
 
 cd "$WORK_DIR/releases/etcd"
 cp ${ETCD}/etcd ${ETCD}/etcdctl "$WORK_DIR/binaries"

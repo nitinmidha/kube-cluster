@@ -20,6 +20,7 @@ ExecStart=/opt/bin/kube-apiserver \
 	    $KUBE_ADMISSION_CONTROL \
         $KUBE_ADVERTISE_ADDRESS \
 		$TOKEN_AUTH_FILE \
+		$STORAGE_BACKEND \
 	    $KUBE_API_CERT_ARGS \
 		$ETCD_AUTH_CERTS 
 Restart=on-failure 
