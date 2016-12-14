@@ -39,7 +39,7 @@ else
   cd "$WORK_DIR/releases/kube"
 
   release=${KUBERNETES_RELEASE:-$(get_latest_version_number)}
-  release_url=https://storage.googleapis.com/kubernetes-release/release/${release}/kubernetes.tar.gz
+  release_url=https://storage.googleapis.com/kubernetes-release/release/${release}/kubernetes-server-linux-amd64.tar.gz
 
 
   uname=$(uname)
@@ -72,9 +72,9 @@ else
     exit 3
   fi
 
-  file=kubernetes.tar.gz
+  file=kubernetes-server-linux-amd64.tar.gz
 
-  echo "Downloading kubernetes release ${release} to ${PWD}/kubernetes.tar.gz"
+  echo "Downloading kubernetes release ${release} to ${PWD}/kubernetes-server-linux-amd64.tar.gz"
   if [[ -n "${KUBERNETES_SKIP_CONFIRM-}" ]]; then
     echo "Is this ok? [Y]/n"
     read confirm
@@ -96,11 +96,11 @@ else
   echo "Unpacking kubernetes release ${release}"
   tar -xzf ${file}
 
-  echo "Unpacking kubernetes binaries"
+  #echo "Unpacking kubernetes binaries"
 
-  pushd kubernetes/server
-  tar xzf kubernetes-server-linux-amd64.tar.gz
-  popd
+  #pushd kubernetes/server
+  #tar xzf kubernetes-server-linux-amd64.tar.gz
+  #popd
 
 
   # flannel
@@ -124,12 +124,12 @@ fi
 
 cd "$WORK_DIR/releases/kube"
 
-cp kubernetes/server/kubernetes/server/bin/kube-apiserver \
-    kubernetes/server/kubernetes/server/bin/kube-controller-manager \
-    kubernetes/server/kubernetes/server/bin/kube-scheduler "$WORK_DIR/binaries"
-cp kubernetes/server/kubernetes/server/bin/kubelet \
-    kubernetes/server/kubernetes/server/bin/kube-proxy "$WORK_DIR/binaries"
-cp kubernetes/server/kubernetes/server/bin/kubectl "$WORK_DIR/binaries"
+cp kubernetes/server/bin/kube-apiserver \
+    kubernetes/server/bin/kube-controller-manager \
+    kubernetes/server/bin/kube-scheduler "$WORK_DIR/binaries"
+cp kubernetes/server/bin/kubelet \
+    kubernetes/server/bin/kube-proxy "$WORK_DIR/binaries"
+cp kubernetes/server/bin/kubectl "$WORK_DIR/binaries"
 
 cd "$WORK_DIR/releases/flannel"
 cp flanneld "$WORK_DIR/binaries"

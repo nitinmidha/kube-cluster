@@ -5,7 +5,7 @@ export NODES=("testuser@kubmaster1" "testuser@kubmaster2" "testuser@kubmaster3" 
 # MO - Master Only
 # WO - Worker Only
 # MW - Master and Worker
-export NODE_ROLES=("MW" "MO" "MW" "WO" "WO")
+export NODE_ROLES=("MO" "MO" "MO" "WO" "WO")
 export DNS_SERVER_IP=${DNS_SERVER_IP:-"192.168.3.10"}
 export DNS_DOMAIN=${DNS_DOMAIN:-"cluster.local"}
 export ADMISSION_CONTROL=NamespaceLifecycle,LimitRanger,ServiceAccount,SecurityContextDeny,DefaultStorageClass,ResourceQuota

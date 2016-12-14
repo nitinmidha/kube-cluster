@@ -39,15 +39,15 @@ function configure-kubectl(){
 
 function deploy_dns {
   echo "Deploying DNS on Kubernetes"
-  sed -e "s/\\\$DNS_REPLICAS/${DNS_REPLICAS}/g;s/\\\$DNS_DOMAIN/${DNS_DOMAIN}/g;" "$BASE_DIR/addons/skydns-rc.yaml.sed" > $WORK_DIR/addons/skydns-rc.yaml
-  sed -e "s/\\\$DNS_SERVER_IP/${DNS_SERVER_IP}/g" "$BASE_DIR/addons/skydns-svc.yaml.sed" > $WORK_DIR/addons/skydns-svc.yaml
+  sed -e "s/\\\$DNS_REPLICAS/${DNS_REPLICAS}/g;s/\\\$DNS_DOMAIN/${DNS_DOMAIN}/g;" "$BASE_DIR/addons/kubedns-controller.yaml.sed" > $WORK_DIR/addons/kubedns-controller.yaml
+  sed -e "s/\\\$DNS_SERVER_IP/${DNS_SERVER_IP}/g" "$BASE_DIR/addons/kubedns-service.yaml.sed" > $WORK_DIR/addons/kubedns-service.yaml
 
   KUBEDNS=`eval "${KUBECTL} get services --namespace=kube-system | grep kube-dns | cat"`
       
   if [ ! "$KUBEDNS" ]; then
     # use kubectl to create skydns rc and service
-    ${KUBECTL} --namespace=kube-system create -f $WORK_DIR/addons/skydns-rc.yaml 
-    ${KUBECTL} --namespace=kube-system create -f $WORK_DIR/addons/skydns-svc.yaml
+    ${KUBECTL} --namespace=kube-system create -f $WORK_DIR/addons/kubedns-controller.yaml 
+    ${KUBECTL} --namespace=kube-system create -f $WORK_DIR/addons/kubedns-service.yaml
 
     echo "Kube-dns rc and service is successfully deployed."
   else
