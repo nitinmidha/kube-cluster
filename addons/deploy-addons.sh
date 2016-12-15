@@ -7,6 +7,7 @@ KUBECTL="$WORK_DIR/binaries/kubectl"
 
 source "$CONFIG_PATH"
 
+
 mkdir -p "$WORK_DIR/addons"
 
 function configure-kubectl(){
@@ -31,9 +32,9 @@ function configure-kubectl(){
         --server=https://$server_address \
         --certificate-authority="$WORK_DIR/certs/ca.crt"
     "$KUBECTL" config set-credentials "$CLUSTER_NAME-admin-user" --token=$admin_token
-    "$KUBECTL" config set-context "$CLUSTER_NAME-context" --user="$CLUSTER_NAME-admin-user" \
+    "$KUBECTL" config set-context "$KUBECTL_CONTEXT" --user="$CLUSTER_NAME-admin-user" \
         --cluster="$CLUSTER_NAME-cluster"
-    "$KUBECTL" config use-context "$CLUSTER_NAME-context"
+    #"$KUBECTL" config use-context "$CLUSTER_NAME-context"
 }
 
 
@@ -46,8 +47,8 @@ function deploy_dns {
       
   if [ ! "$KUBEDNS" ]; then
     # use kubectl to create skydns rc and service
-    ${KUBECTL} --namespace=kube-system create -f $WORK_DIR/addons/kubedns-controller.yaml 
-    ${KUBECTL} --namespace=kube-system create -f $WORK_DIR/addons/kubedns-service.yaml
+    ${KUBECTL} --context "$KUBECTL_CONTEXT" --namespace=kube-system create -f $WORK_DIR/addons/kubedns-controller.yaml 
+    ${KUBECTL} --context "$KUBECTL_CONTEXT" --namespace=kube-system create -f $WORK_DIR/addons/kubedns-service.yaml
 
     echo "Kube-dns rc and service is successfully deployed."
   else
@@ -57,17 +58,17 @@ function deploy_dns {
 
 
 function deploy_dashboard {
-    if ${KUBECTL} get rc -l k8s-app=kubernetes-dashboard --namespace=kube-system | grep kubernetes-dashboard-v &> /dev/null; then
+    if ${KUBECTL} --context "$KUBECTL_CONTEXT" get rc -l k8s-app=kubernetes-dashboard --namespace=kube-system | grep kubernetes-dashboard-v &> /dev/null; then
         echo "Kubernetes Dashboard replicationController already exists"
     else
-        ${KUBECTL} create -f $BASE_DIR/addons/dashboard-controller.yaml
+        ${KUBECTL} --context "$KUBECTL_CONTEXT" create -f $BASE_DIR/addons/dashboard-controller.yaml
     fi
 
-    if ${KUBECTL} get service/kubernetes-dashboard --namespace=kube-system &> /dev/null; then
+    if ${KUBECTL} --context "$KUBECTL_CONTEXT" get service/kubernetes-dashboard --namespace=kube-system &> /dev/null; then
         echo "Kubernetes Dashboard service already exists"
     else
         echo "Creating Kubernetes Dashboard service"
-        ${KUBECTL} create -f $BASE_DIR/addons/dashboard-service.yaml
+        ${KUBECTL} --context "$KUBECTL_CONTEXT" create -f $BASE_DIR/addons/dashboard-service.yaml
     fi
 }
 
