@@ -11,5 +11,5 @@ source "$CONFIG_PATH"
 
 "$KUBECTL" --context "$KUBECTL_CONTEXT" delete -f "$BASE_DIR/addons/dashboard-controller.yaml"
 "$KUBECTL" --context "$KUBECTL_CONTEXT" delete -f "$BASE_DIR/addons/dashboard-service.yaml"
-"$KUBECTL" --context "$KUBECTL_CONTEXT" delete -f "$WORK_DIR/addons/skydns-rc.yaml"
-"$KUBECTL" --context "$KUBECTL_CONTEXT" delete -f "$WORK_DIR/addons/skydns-svc.yaml"
+"$KUBECTL" --context "$KUBECTL_CONTEXT" delete -f "$WORK_DIR/addons/kubedns-controller.yaml"
+"$KUBECTL" --context "$KUBECTL_CONTEXT" delete -f "$WORK_DIR/addons/kubedns-service.yaml"
