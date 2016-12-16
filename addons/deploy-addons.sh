@@ -43,7 +43,7 @@ function deploy_dns {
   sed -e "s/\\\$DNS_REPLICAS/${DNS_REPLICAS}/g;s/\\\$DNS_DOMAIN/${DNS_DOMAIN}/g;" "$BASE_DIR/addons/kubedns-controller.yaml.sed" > $WORK_DIR/addons/kubedns-controller.yaml
   sed -e "s/\\\$DNS_SERVER_IP/${DNS_SERVER_IP}/g" "$BASE_DIR/addons/kubedns-service.yaml.sed" > $WORK_DIR/addons/kubedns-service.yaml
 
-  KUBEDNS=`eval "${KUBECTL} get services --namespace=kube-system | grep kube-dns | cat"`
+  KUBEDNS=`eval "${KUBECTL} --context "$KUBECTL_CONTEXT" get services --namespace=kube-system | grep kube-dns | cat"`
       
   if [ ! "$KUBEDNS" ]; then
     # use kubectl to create skydns rc and service
