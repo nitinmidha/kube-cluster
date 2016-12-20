@@ -137,7 +137,7 @@ function configure-etcd-auth(){
 function provision-node(){
     node="${1:-}"
     role="${2:-}"
-    api_server_ip="${3:-}"
+    api_server_ip_for_node="${3:-}"
     etcd_end_points="${4:-}"
     configure_etcd_flannel="${5:-}"
 
@@ -196,7 +196,7 @@ function provision-node(){
         ~/ha-kube/node/deploy-node.sh deploy-node \
             $node_host_name \
             $role \
-            $api_server_ip \
+            $api_server_ip_for_node \
             $etcd_end_points \
             $configure_etcd_flannel
     "
@@ -238,7 +238,21 @@ function provision-nodes(){
             configure_etcd_flannel="false"
         fi
 
-        provision-node "$node" "$role" "$api_server_ip" "$etcd_endpoints" "$configure_etcd_flannel"
+        # If we are provisioning Master Only or Master Worker, then we can use 127.0.0.1 as api_server_ip
+        if [ "$role" == "MO" ] || [ "$role" == "MW" ]; then
+            api_server_ip_for_node="127.0.0.1"
+            # If provisioning master, we can use local etcd deployment ....
+            if [ "$DEPLOY_ETCD" == "true" ]; then
+                etcd_endpoints_for_node="https://127.0.0.1:2379"
+            else
+                etcd_endpoints_for_node=$etcd_endpoints
+            fi
+        else
+            api_server_ip_for_node=$api_server_ip
+            etcd_endpoints_for_node=$etcd_endpoints
+        fi
+
+        provision-node "$node" "$role" "$api_server_ip_for_node" "$etcd_endpoints_for_node" "$configure_etcd_flannel"
         ((index=index+1))
     done
 }
