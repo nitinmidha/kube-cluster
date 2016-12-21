@@ -7,6 +7,10 @@ KUBECTL="$WORK_DIR/binaries/kubectl"
 
 source "$CONFIG_PATH"
 
+function get-hostname(){
+        host_name="$(ssh $SSH_OPTS "$1" hostname)"
+        echo "$host_name"
+}
 
 mkdir -p "$WORK_DIR/addons"
 
@@ -16,7 +20,7 @@ function configure-kubectl(){
     for node in "${NODES[@]}"; do
         role="${NODE_ROLES[$index]}"
         if [ "$role" = "MO" ] || [ "$role" = "MW" ]; then
-            node_host_name="$(echo $node | awk -F @ '{print $2}' )"
+            node_host_name="$(get-hostname $node  )"
             break
         fi
         ((index=index+1))

@@ -5,6 +5,11 @@ CONFIG_PATH=${3:-}
 
 source "$CONFIG_PATH"
 
+function get-hostname(){
+        host_name="$(ssh $SSH_OPTS "$1" hostname)"
+        echo "$host_name"
+}
+
 GET_NODE_IP="ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print "'$2'"}' | cut -f1  -d'/'"
 
 #"/sbin/ifconfig -a |grep eth0 -A 1|grep 'inet addr'|sed 's/\:/ /'|awk"' '"'"'{print $3}'"'"''
@@ -68,7 +73,7 @@ function provision-etcd-node(){
     etcd_node_name=${2:-}
     etcd_cluster_name=${3:-}
     etcd_initial_cluster=${4:-}
-    etcd_node_host_name="$(echo $etcd_node | awk -F @ '{print $2}' )"
+    etcd_node_host_name="$(get-hostname $etcd_node )"
 
     # stage files for scp
     rm -rf "$WORK_DIR/ha-kube"
@@ -141,7 +146,7 @@ function provision-node(){
     etcd_end_points="${4:-}"
     configure_etcd_flannel="${5:-}"
 
-    node_host_name="$(echo $node | awk -F @ '{print $2}' )"
+    node_host_name="$(get-hostname $node )"
     # stage files for scp
     rm -rf "$WORK_DIR/ha-kube"
     mkdir -p "$WORK_DIR/ha-kube"

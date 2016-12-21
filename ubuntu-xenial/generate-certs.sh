@@ -23,7 +23,7 @@ mkdir -p "$CERT_TMP_DIR"
 function generate-cert(){
     node=${1:-}
     role=${2:-}
-    node_hostname="$(echo $node | awk -F @ '{print $2}' )"
+    node_hostname="$(ssh $SSH_OPTS "$node" hostname)"
     node_ip=$(ssh $SSH_OPTS "$node" "$GET_NODE_IP")
     key_file="$CERT_TMP_DIR/${node_hostname}.key"
     if [ -f "${key_file}" ]; then

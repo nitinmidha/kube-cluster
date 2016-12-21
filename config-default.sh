@@ -1,5 +1,5 @@
 export CLUSTER_NAME="kubetestcluster"
-export NODES=("testuser@kubmaster1" "testuser@kubmaster2" "testuser@kubmaster3" "testuser@kubminion1" "testuser@kubminion2")
+export NODES=("kubmaster1" "kubmaster2" "kubmaster3" "kubminion1" "kubminion2")
 
 #Role of each node, should be in same oder as of NODES
 # MO - Master Only
@@ -8,7 +8,7 @@ export NODES=("testuser@kubmaster1" "testuser@kubmaster2" "testuser@kubmaster3" 
 export NODE_ROLES=("MO" "MO" "MO" "WO" "WO")
 export DNS_SERVER_IP=${DNS_SERVER_IP:-"192.168.3.10"}
 export DNS_DOMAIN=${DNS_DOMAIN:-"cluster.local"}
-export ADMISSION_CONTROL=NamespaceLifecycle,LimitRanger,ServiceAccount,SecurityContextDeny,DefaultStorageClass,ResourceQuota
+export ADMISSION_CONTROL=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
 export SERVICE_CLUSTER_IP_RANGE=${SERVICE_CLUSTER_IP_RANGE:-192.168.3.0/24}
 export SERVICE_NODE_PORT_RANGE=${SERVICE_NODE_PORT_RANGE:-"1-32767"}
 export CERT_DIR=${CERT_DIR:-/etc/kubernetes/pki}
